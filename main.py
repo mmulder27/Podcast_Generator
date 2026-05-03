@@ -1,4 +1,5 @@
 import json
+import gzip
 import os
 import networkx as nx
 import matplotlib.pyplot as plt
@@ -22,13 +23,14 @@ def build_graph():
     nodes = []
     edges = []
 
-    with open("exported_jsonl/public.node.jsonl", "r", encoding="utf-8") as f:
+    # Use gzip.open with 'rt' (read text) mode instead of standard open()
+    with gzip.open("public.node.jsonl.gz", "rt", encoding="utf-8") as f:
         for i, line in enumerate(f):
             nodes.append(json.loads(line))
             if "embedding" in nodes[i].get("attrs", {}):
                 del nodes[i]["attrs"]["embedding"]
 
-    with open("exported_jsonl/public.edge.jsonl", "r", encoding="utf-8") as f:
+    with open("public.edge.jsonl", "r", encoding="utf-8") as f:
         for line in f:
             edges.append(json.loads(line))
 
