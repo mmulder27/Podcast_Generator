@@ -21,7 +21,7 @@ jobs:
       - name: Install dependencies
         # Assuming you have a requirements.txt, or we just install them directly
         run: |
-          pip install openai google-api-python-client google-auth-httplib2 google-auth-oauthlib
+          pip install networkx matplotlib numpy openai google-api-python-client google-auth-oauthlib google-auth-httplib2
 
       - name: Recreate Google Auth Files
         # This securely takes your secrets and turns them back into the files your Python script expects
