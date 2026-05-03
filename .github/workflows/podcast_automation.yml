@@ -1,0 +1,53 @@
+name: Generate AI Podcast
+
+on:
+  schedule:
+    # Runs at 08:00 UTC every 3rd day
+    - cron: '0 8 */3 * *'
+  workflow_dispatch: # This gives you a button to run it manually from the GitHub UI
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        # Assuming you have a requirements.txt, or we just install them directly
+        run: |
+          pip install openai google-api-python-client google-auth-httplib2 google-auth-oauthlib
+
+      - name: Recreate Google Auth Files
+        # This securely takes your secrets and turns them back into the files your Python script expects
+        env:
+          TOKEN_JSON: ${{ secrets.GCP_TOKEN_JSON }}
+          CREDENTIALS_JSON: ${{ secrets.GCP_CREDENTIALS_JSON }}
+        run: |
+          echo "$TOKEN_JSON" > token.json
+          echo "$CREDENTIALS_JSON" > credentials.json
+
+      - name: Run Podcast Generator
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: python main.py
+
+      - name: Commit and push updated node_weights.json
+        run: |
+          # 1. Tell Git who is making the commit
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # 2. Stage the modified weights file
+          git add node_weights.json
+          
+          # 3. Commit the file (the '|| echo' prevents the action from crashing if the weights didn't change for some reason)
+          git commit -m "Auto-update node weights after podcast generation" || echo "No changes to commit"
+          
+          # 4. Push the changes back to your repository
+          git push
